@@ -1,0 +1,179 @@
+svg_path
+  = wsp* data:moveTo_drawTo_commandGroups? wsp*
+  {
+    var result = [];
+    function flatten(a){
+      for (var i=0,l=a.length;i<l;++i){
+        var o=a[i];
+        if (o.constructor==Array) flatten(o);
+        else if (o && o!=" ") result.push(o);
+      }
+    }
+    flatten(data);
+    return result;
+  }
+
+moveTo_drawTo_commandGroups
+  = first:moveTo_drawTo_commandGroup more:(wsp* moveTo_drawTo_commandGroups)?
+
+moveTo_drawTo_commandGroup
+  = first:moveto wsp* more:drawto_commands?
+
+drawto_commands
+  = first:drawto_command more:(wsp* drawto_commands)?
+
+drawto_command
+  = closepath
+    / lineto
+    / horizontal_lineto
+    / vertical_lineto
+    / curveto
+    / smooth_curveto
+    / quadratic_bezier_curveto
+    / smooth_quadratic_bezier_curveto
+    / elliptical_arc
+
+
+moveto
+  = c:[Mm] wsp:wsp* seq:moveto_argument_sequence
+    { return {command:"moveto", relative:c=='m', args:seq} }
+
+moveto_argument_sequence
+  = first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+
+closepath
+  = [Zz]
+    { return {command:"closepath" } }
+
+lineto
+  = c:[Ll] wsp* args:lineto_argument_sequence
+  { return {command:"lineto", relative:c=='l', args:args} }
+
+lineto_argument_sequence
+  = first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+horizontal_lineto
+  = c:[Hh] wsp* args:coordinate_sequence
+  { return {command:"horizontal lineto", relative:c=='h', args:args} }
+
+coordinate_sequence
+  = first:coordinate more:(comma_wsp? coordinate_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+vertical_lineto
+  = c:[Vv] wsp* args:coordinate_sequence
+  { return {command:"vertical lineto", relative:c=='v', args:args} }
+
+
+curveto
+  = c:[Cc] wsp* args:curveto_argument_sequence
+  { return {command:"curveto", relative:c=='c', args:args} }
+
+curveto_argument_sequence
+  = first:curveto_argument more:(comma_wsp? curveto_argument_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+curveto_argument
+  = a:coordinate_pair comma_wsp? b:coordinate_pair comma_wsp? c:coordinate_pair
+  { return { x1:a.x, y1:a.y, x2:b.x, y2:b.y, x:c.x, y:c.y } }
+
+
+smooth_curveto
+  = c:[Ss] wsp* args:smooth_curveto_argument_sequence
+  { return {command:"smooth curveto", relative:c=='s', args:args} }
+
+smooth_curveto_argument_sequence
+  = first:smooth_curveto_argument more:(comma_wsp? smooth_curveto_argument_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+smooth_curveto_argument
+  = b:coordinate_pair comma_wsp? c:coordinate_pair
+  { return { x2:b.x, y2:b.y, x:c.x, y:c.y } }
+
+
+quadratic_bezier_curveto
+  = c:[Qq] wsp* args:quadratic_bezier_curveto_argument_sequence
+    { return {command:"quadratic curveto", relative:c=='q', args:args} }
+
+quadratic_bezier_curveto_argument_sequence
+  = first:quadratic_bezier_curveto_argument more:(comma_wsp? quadratic_bezier_curveto_argument_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+quadratic_bezier_curveto_argument
+  = a:coordinate_pair comma_wsp? b:coordinate_pair
+  { return { x1:a.x, y1:a.y, x:b.x, y:b.y } }
+
+
+smooth_quadratic_bezier_curveto
+  = c:[Tt] wsp* args:smooth_quadratic_bezier_curveto_argument_sequence
+  { return {command:"smooth quadratic curveto", relative:c=='t', args:args} }
+
+smooth_quadratic_bezier_curveto_argument_sequence
+  = first:coordinate_pair more:(comma_wsp? smooth_quadratic_bezier_curveto_argument_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+
+elliptical_arc
+  = c:[Aa] wsp* args:elliptical_arc_argument_sequence
+  { return {command:"elliptical arc", relative:c=='a', args:args} }
+
+elliptical_arc_argument_sequence
+  = first:elliptical_arc_argument more:(comma_wsp? elliptical_arc_argument_sequence)?
+  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+
+elliptical_arc_argument
+  = rx:nonnegative_number comma_wsp? ry:nonnegative_number comma_wsp?
+        xrot:number comma_wsp large:flag comma_wsp? sweep:flag comma_wsp? xy:coordinate_pair
+  { return { rx:rx, ry:ry, xAxisRotation:xrot.join('')*1, largeArc:large=='1', sweep:sweep=='1', x:xy.x, y:xy.y } }
+
+
+coordinate_pair
+  = x:coordinate comma_wsp? y:coordinate
+  { return { x:x, y:y } }
+
+coordinate
+  = n:number
+  { return n.join('')*1 }
+
+nonnegative_number
+  = integer_constant / floating_point_constant
+
+number
+  = sign? integer_constant
+    / sign? floating_point_constant
+
+flag
+  = "0" / "1"
+
+comma_wsp
+  = (wsp+ comma? wsp*) / (comma wsp*)
+
+comma
+  = ","
+
+integer_constant
+  = digit_sequence
+
+floating_point_constant
+  = fractional_constant exponent?
+    / digit_sequence exponent
+
+fractional_constant
+  = digit_sequence? "." digit_sequence
+    / digit_sequence "." { return "hi" }
+
+exponent
+  = [eE] sign? digit_sequence
+
+sign
+  = "+" / "-"
+
+digit_sequence
+  = digits:[0-9]+
+    { return digits.join("")*1 }
+
+wsp
+  = [ \t\n\r]
