@@ -2,7 +2,8 @@
 
 An SVG path parser, built from the [PEG.js](http://pegjs.majda.cz/) grammar
 specified [here](http://pastie.org/1036541), published as an NPM module.
-I'm unsure of the original source unfortunately.
+
+Originally written by [Gavin Kistner](http://github.com/Phrogz).
 
 [![svg-path-parser](https://nodei.co/npm/svg-path-parser.png?mini=true)](https://nodei.co/npm/svg-path-parser)
 
