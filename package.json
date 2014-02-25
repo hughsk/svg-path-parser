@@ -1,6 +1,6 @@
 {
   "name": "svg-path-parser",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A parser for SVG's path syntax",
   "main": "index.js",
   "scripts": {
