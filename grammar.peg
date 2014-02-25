@@ -139,11 +139,11 @@ coordinate
   { return n.join('')*1 }
 
 nonnegative_number
-  = integer_constant / floating_point_constant
+  = floating_point_constant / integer_constant
 
 number
-  = sign? integer_constant
-    / sign? floating_point_constant
+  = sign? floating_point_constant
+    / sign? integer_constant
 
 flag
   = "0" / "1"
