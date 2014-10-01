@@ -1,17 +1,17 @@
-svg_path
-  = wsp* data:moveTo_drawTo_commandGroups? wsp*
-  {
-    var result = [];
-    function flatten(a){
-      for (var i=0,l=a.length;i<l;++i){
-        var o=a[i];
-        if (o.constructor==Array) flatten(o);
-        else if (o && o!=" ") result.push(o);
-      }
+{
+  function flatten(a,result){
+    if (!result) result = [];
+    for (var i=0,l=a.length;i<l;++i){
+      var o=a[i];
+      if (o.constructor==Array) flatten(o,result);
+      else if (o && o!=" ") result.push(o);
     }
-    flatten(data);
     return result;
   }
+}
+svg_path
+  = wsp* data:moveTo_drawTo_commandGroups? wsp*
+  { return flatten(data) }
 
 moveTo_drawTo_commandGroups
   = first:moveTo_drawTo_commandGroup more:(wsp* moveTo_drawTo_commandGroups)?
@@ -127,7 +127,7 @@ elliptical_arc_argument_sequence
 elliptical_arc_argument
   = rx:nonnegative_number comma_wsp? ry:nonnegative_number comma_wsp?
         xrot:number comma_wsp large:flag comma_wsp? sweep:flag comma_wsp? xy:coordinate_pair
-  { return { rx:rx, ry:ry, xAxisRotation:xrot.join('')*1, largeArc:large=='1', sweep:sweep=='1', x:xy.x, y:xy.y } }
+  { return { rx:rx, ry:ry, xAxisRotation:xrot, largeArc:large=='1', sweep:sweep=='1', x:xy.x, y:xy.y } }
 
 
 coordinate_pair
@@ -135,15 +135,14 @@ coordinate_pair
   { return { x:x, y:y } }
 
 coordinate
-  = n:number
-  { return n.join('')*1 }
+  = number
 
 nonnegative_number
   = floating_point_constant / integer_constant
 
 number
-  = sign? floating_point_constant
-    / sign? integer_constant
+  = parts:(sign? floating_point_constant / sign? integer_constant)
+  { return flatten(parts).join('')*1 }
 
 flag
   = "0" / "1"
@@ -155,15 +154,16 @@ comma
   = ","
 
 integer_constant
-  = digit_sequence
+  = n:digit_sequence
+  { return n*1 }
 
 floating_point_constant
-  = fractional_constant exponent?
-    / digit_sequence exponent
+  = n:(fractional_constant exponent? / digit_sequence exponent)
+  { return flatten(n).join('')*1 }
 
 fractional_constant
-  = digit_sequence? "." digit_sequence
-    / digit_sequence "." { return "hi" }
+  = n:(digit_sequence? "." digit_sequence / digit_sequence ".")
+  { return flatten(n).join('')*1 }
 
 exponent
   = [eE] sign? digit_sequence
@@ -173,7 +173,7 @@ sign
 
 digit_sequence
   = digits:[0-9]+
-    { return digits.join("")*1 }
+    { return digits.join("") }
 
 wsp
   = [ \t\n\r]
