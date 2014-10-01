@@ -3,7 +3,7 @@
 An SVG path parser, built from the [PEG.js](http://pegjs.majda.cz/) grammar
 specified [here](http://pastie.org/1036541), published as an NPM module.
 
-Originally written by [Gavin Kistner](http://github.com/Phrogz).
+Grammar originally written by [Gavin Kistner](http://github.com/Phrogz).
 
 [![svg-path-parser](https://nodei.co/npm/svg-path-parser.png?mini=true)](https://nodei.co/npm/svg-path-parser)
 
@@ -152,4 +152,7 @@ Should yield an array of commands that define the path, like so:
 
 ## History
 
-* v0.0.2 - Fix parsing of numbers other than integers to work.
+### v0.0.2 - 2014-Oct-1
++ Fix parsing of numbers other than integers to work.
++ First `moveto` command is always absolute.
++ Additional coordinates after moveto are treated as lineto.

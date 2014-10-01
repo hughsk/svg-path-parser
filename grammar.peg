@@ -9,9 +9,21 @@
     return result;
   }
 }
+
 svg_path
   = wsp* data:moveTo_drawTo_commandGroups? wsp*
-  { return flatten(data) }
+  {
+    var commands = flatten(data);
+    var first=commands[0];
+    if (first && first.command=='moveto'){
+      for (var i=first.args.length;--i;){
+        commands.splice(1,0,{ command:'lineto', relative:first.relative, args:[first.args[i]] });
+      }
+      first.args.length = 1;
+      first.relative=false; // First moveto command is never relative, per spec
+    }
+    return commands;
+  }
 
 moveTo_drawTo_commandGroups
   = first:moveTo_drawTo_commandGroup more:(wsp* moveTo_drawTo_commandGroups)?
@@ -35,17 +47,16 @@ drawto_command
 
 
 moveto
-  = c:[Mm] wsp:wsp* seq:moveto_argument_sequence
-    { return {command:"moveto", relative:c=='m', args:seq} }
+  = c:[Mm] wsp* seq:moveto_argument_sequence
+  { return {command:"moveto", relative:c=='m', args:seq} }
 
 moveto_argument_sequence
   = first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
-  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
-
+  { return more ? [first].concat(more[1]) : [first] }
 
 closepath
   = [Zz]
-    { return {command:"closepath" } }
+  { return {command:"closepath"} }
 
 lineto
   = c:[Ll] wsp* args:lineto_argument_sequence
@@ -53,7 +64,7 @@ lineto
 
 lineto_argument_sequence
   = first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
-  { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
+  { return more ? [first].concat(more[1]) : [first] }
 
 horizontal_lineto
   = c:[Hh] wsp* args:coordinate_sequence
@@ -115,7 +126,6 @@ smooth_quadratic_bezier_curveto_argument_sequence
   = first:coordinate_pair more:(comma_wsp? smooth_quadratic_bezier_curveto_argument_sequence)?
   { for (var a=[first],i=1,len=more.length;i<len;++i){ a[i]=more[i][0] }; return a; }
 
-
 elliptical_arc
   = c:[Aa] wsp* args:elliptical_arc_argument_sequence
   { return {command:"elliptical arc", relative:c=='a', args:args} }
@@ -127,7 +137,7 @@ elliptical_arc_argument_sequence
 elliptical_arc_argument
   = rx:nonnegative_number comma_wsp? ry:nonnegative_number comma_wsp?
         xrot:number comma_wsp large:flag comma_wsp? sweep:flag comma_wsp? xy:coordinate_pair
-  { return { rx:rx, ry:ry, xAxisRotation:xrot, largeArc:large=='1', sweep:sweep=='1', x:xy.x, y:xy.y } }
+  { return { rx:rx, ry:ry, xAxisRotation:xrot, largeArc:large, sweep:sweep, x:xy.x, y:xy.y } }
 
 
 coordinate_pair
@@ -138,28 +148,30 @@ coordinate
   = number
 
 nonnegative_number
-  = floating_point_constant / integer_constant
+  = n:(floating_point_constant / integer_constant)
+  { return n*1 }
 
 number
   = parts:(sign? floating_point_constant / sign? integer_constant)
   { return flatten(parts).join('')*1 }
 
 flag
-  = "0" / "1"
+  = bit:("0" / "1")
+  { return bit=="1" }
 
 comma_wsp
   = (wsp+ comma? wsp*) / (comma wsp*)
+  { return undefined }
 
 comma
   = ","
 
 integer_constant
-  = n:digit_sequence
-  { return n*1 }
+  = digit_sequence
 
 floating_point_constant
   = n:(fractional_constant exponent? / digit_sequence exponent)
-  { return flatten(n).join('')*1 }
+  { return flatten(n).join('') }
 
 fractional_constant
   = n:(digit_sequence? "." digit_sequence / digit_sequence ".")
@@ -177,3 +189,4 @@ digit_sequence
 
 wsp
   = [ \t\n\r]
+  { return undefined }
