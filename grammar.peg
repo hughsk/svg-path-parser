@@ -161,7 +161,7 @@ flag
 
 comma_wsp
   = (wsp+ comma? wsp*) / (comma wsp*)
-  { return undefined }
+  { return '' }
 
 comma
   = ","
@@ -189,4 +189,4 @@ digit_sequence
 
 wsp
   = [ \t\n\r]
-  { return undefined }
+  { return '' }

@@ -152,6 +152,9 @@ Should yield an array of commands that define the path, like so:
 
 ## History
 
+### v0.0.3 - 2014-Oct-1
++ Fix bug that prevented parsing some valid documents.
+
 ### v0.0.2 - 2014-Oct-1
 + Fix parsing of numbers other than integers to work.
 + First `moveto` command is always absolute.
