@@ -149,3 +149,7 @@ Should yield an array of commands that define the path, like so:
   }
 ]
 ```
+
+## History
+
+* v0.0.2 - Fix parsing of numbers other than integers to work.
