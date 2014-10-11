@@ -1,6 +1,6 @@
 # svg-path-parser [![stable](http://hughsk.github.io/stability-badges/dist/stable.svg)](http://github.com/hughsk/stability-badges) #
 
-An SVG path parser, built from the [PEG.js](http://pegjs.majda.cz/) grammar
+An SVG path parser, originally built from the [PEG.js](http://pegjs.majda.cz/) grammar
 specified [here](http://pastie.org/1036541), published as an NPM module.
 
 Grammar originally written by [Gavin Kistner](http://github.com/Phrogz).
@@ -151,6 +151,9 @@ Should yield an array of commands that define the path, like so:
 ```
 
 ## History
+
+### v0.0.4 - 2014-Oct-10
++ Unroll recursive grammar descriptions that could cause parsing a large path to overflow the stack.
 
 ### v0.0.3 - 2014-Oct-1
 + Fix bug that prevented parsing some valid documents.
