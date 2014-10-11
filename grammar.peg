@@ -2,9 +2,10 @@
   function flatten(a,result){
     if (!result) result = [];
     for (var i=0,l=a.length;i<l;++i){
-      var o=a[i];
-      if (o.constructor==Array) flatten(o,result);
-      else if (o && o!=' ') result.push(o);
+      if (a[i]!=null){
+        if (a[i].constructor==Array) flatten(a[i],result);
+        else if (a[i]!='') result.push(a[i]);
+      }
     }
     return result;
   }
