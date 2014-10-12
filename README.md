@@ -27,7 +27,7 @@ console.log(parse(d));
 
 …will yield an array of commands that define the path, like so:
 
-``` json
+``` javascript
 [
   { code:'M', command:'moveto', x:3, y:7 },
   { code:'L', command:'lineto', x:5, y:-6 },
