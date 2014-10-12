@@ -22,7 +22,7 @@ var d='M3,7 5-6 L1,7 1e2-.4 m-10,10 l10,0  \
   Q50,50 73,57         q20,-5 0,-10        \
   T70,40               t0,-15              \
   A5,5 45 1,0 40,20    a5,5 20 0,1 -10-10  Z';
-console.log(parse(path));
+console.log(parse(d));
 ```
 
 …will yield an array of commands that define the path, like so:
