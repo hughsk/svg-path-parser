@@ -1,44 +1,43 @@
 {
-  function flatten(a,result){
-    if (!result) result = [];
-    for (var i=0,l=a.length;i<l;++i){
-      if (a[i]!=null){
-        if (a[i].constructor==Array) flatten(a[i],result);
-        else if (a[i]!='') result.push(a[i]);
-      }
-    }
-    return result;
-  }
-
   function merge(first,more){
     for (var a=[first],i=0,l=more.length;i<l;i++) a[i+1]=more[i][1];
     return a;
+  }
+
+  var cmds = {m:'moveto',l:'lineto',h:'horizontal lineto',v:'vertical lineto',c:'curveto',s:'smooth curveto',q:'quadratic curveto',t:'smooth quadratic curveto',a:'elliptical arc',z:'closepath'};
+  for (var code in cmds) cmds[code.toUpperCase()]=cmds[code];
+  function commands(code,args){
+    if (!args) args=[{}];
+    for (var i=args.length;i--;){
+      var cmd={code:code,command:cmds[code]};
+      if (code==code.toLowerCase()) cmd.relative=true;
+      for (var k in args[i]) cmd[k]=args[i][k];
+      args[i] = cmd;
+    }
+    return args;
   }
 }
 
 svg_path
   = wsp* data:moveTo_drawTo_commandGroups? wsp*
   {
-    var commands = flatten(data);
-    var first=commands[0];
-    if (first && first.command=='moveto'){
-      for (var i=first.args.length;--i;){
-        commands.splice(1,0,{ command:'lineto', relative:first.relative, args:[first.args[i]] });
-      }
-      first.args.length = 1;
-      first.relative=false; // First moveto command is never relative, per spec
+    var cmds = [].concat.apply([],data[0]);
+    if (data[1]) cmds = cmds.concat.apply(cmds,data[1]);
+    var first=cmds[0];
+    if (first && first.code=='m'){ // Per spec, first moveto is never relative
+      delete first.relative;
+      first.code = 'M';
     }
-    return commands;
+    return cmds;
   }
 
 moveTo_drawTo_commandGroups
   = first:moveTo_drawTo_commandGroup more:(wsp* moveTo_drawTo_commandGroup)*
+  { return merge(first,more) }
 
 moveTo_drawTo_commandGroup
-  = first:moveto wsp* more:drawto_commands?
-
-drawto_commands
-  = first:drawto_command more:(wsp* drawto_command)*
+  = first:moveto more:(wsp* drawto_command)*
+  { return merge(first,more) }
 
 drawto_command
   = closepath
@@ -51,22 +50,21 @@ drawto_command
     / smooth_quadratic_bezier_curveto
     / elliptical_arc
 
-
 moveto
-  = c:[Mm] wsp* seq:moveto_argument_sequence
-  { return {command:'moveto', relative:c=='m', args:seq} }
-
-moveto_argument_sequence
-  = first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
-  { return merge(first,more) }
+  = c:[Mm] wsp* first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
+  {
+    var move = commands(c,[first]);
+    if (more) move = move.concat(commands(c=='M' ? 'L' : 'l',more[1]));
+    return move;
+  }
 
 closepath
   = [Zz]
-  { return {command:'closepath'} }
+  { return commands('Z') }
 
 lineto
   = c:[Ll] wsp* args:lineto_argument_sequence
-  { return {command:'lineto', relative:c=='l', args:args} }
+  { return commands(c,args) }
 
 lineto_argument_sequence
   = first:coordinate_pair more:(comma_wsp? coordinate_pair)*
@@ -74,7 +72,7 @@ lineto_argument_sequence
 
 horizontal_lineto
   = c:[Hh] wsp* args:coordinate_sequence
-  { return {command:'horizontal lineto', relative:c=='h', args:args} }
+  { return commands(c,args.map(function(x){ return {x:x}})) }
 
 coordinate_sequence
   = first:number more:(comma_wsp? number)*
@@ -82,12 +80,12 @@ coordinate_sequence
 
 vertical_lineto
   = c:[Vv] wsp* args:coordinate_sequence
-  { return {command:'vertical lineto', relative:c=='v', args:args} }
+  { return commands(c,args.map(function(y){ return {y:y}})) }
 
 
 curveto
   = c:[Cc] wsp* args:curveto_argument_sequence
-  { return {command:'curveto', relative:c=='c', args:args} }
+  { return commands(c,args) }
 
 curveto_argument_sequence
   = first:curveto_argument more:(comma_wsp? curveto_argument)*
@@ -100,7 +98,7 @@ curveto_argument
 
 smooth_curveto
   = c:[Ss] wsp* args:smooth_curveto_argument_sequence
-  { return {command:'smooth curveto', relative:c=='s', args:args} }
+  { return commands(c,args) }
 
 smooth_curveto_argument_sequence
   = first:smooth_curveto_argument more:(comma_wsp? smooth_curveto_argument)*
@@ -113,7 +111,7 @@ smooth_curveto_argument
 
 quadratic_bezier_curveto
   = c:[Qq] wsp* args:quadratic_bezier_curveto_argument_sequence
-    { return {command:'quadratic curveto', relative:c=='q', args:args} }
+  { return commands(c,args) }
 
 quadratic_bezier_curveto_argument_sequence
   = first:quadratic_bezier_curveto_argument more:(comma_wsp? quadratic_bezier_curveto_argument)*
@@ -126,7 +124,7 @@ quadratic_bezier_curveto_argument
 
 smooth_quadratic_bezier_curveto
   = c:[Tt] wsp* args:smooth_quadratic_bezier_curveto_argument_sequence
-  { return {command:'smooth quadratic curveto', relative:c=='t', args:args} }
+  { return commands(c,args) }
 
 smooth_quadratic_bezier_curveto_argument_sequence
   = first:coordinate_pair more:(comma_wsp? coordinate_pair)*
@@ -134,7 +132,7 @@ smooth_quadratic_bezier_curveto_argument_sequence
 
 elliptical_arc
   = c:[Aa] wsp* args:elliptical_arc_argument_sequence
-  { return {command:'elliptical arc', relative:c=='a', args:args} }
+  { return commands(c,args) }
 
 elliptical_arc_argument_sequence
   = first:elliptical_arc_argument more:(comma_wsp? elliptical_arc_argument)*
@@ -156,7 +154,7 @@ nonnegative_number
 
 number
   = parts:(sign? floating_point_constant / sign? digit_sequence)
-  { return flatten(parts).join('')*1 }
+  { return parts.join('')*1 }
 
 flag
   = bit:[01]
@@ -170,15 +168,16 @@ comma
   = ','
 
 floating_point_constant
-  = n:(fractional_constant exponent? / digit_sequence exponent)
-  { return flatten(n).join('') }
+  = parts:(fractional_constant exponent? / digit_sequence exponent)
+  { return parts.join('') }
 
 fractional_constant
-  = n:(digit_sequence? '.' digit_sequence / digit_sequence '.')
-  { return flatten(n).join('') }
+  = parts:(digit_sequence? '.' digit_sequence / digit_sequence '.')
+  { return parts.join('') }
 
 exponent
-  = [eE] sign? digit_sequence
+  = parts:([eE] sign? digit_sequence)
+  { return parts.join('') }
 
 sign
   = [+-]
