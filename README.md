@@ -11,146 +11,56 @@ Grammar originally written by [Gavin Kistner](http://github.com/Phrogz).
 
 ### `require('svg-path-parser')(d)` ###
 
-Takes an SVG path string. The following:
+Takes an SVG path string. The following code…
 
 ``` javascript
-var parse = require('svg-path-parser')
-var path = [
-  'M-150,150'
-, 'L200,100'
-, 'H250 V170'
-, 'Q350,90 375,150'
-, 'T400,150'
-, 'C500,100 575,300 560,150'
-, 'S650,160 550,300'
-, 'Z M500,200'
-, 'A25,35 -80 1,1 450,220 Z'
-].join(' ')
-
-console.log(parse(path))
+var parse = require('svg-path-parser');
+var d='M3,7 5-6 L1,7 1e2-.4 m-10,10 l10,0  \
+  V27 89 H23           v10 h10             \
+  C33,43 38,47 43,47   c0,5 5,10 10,10     \
+  S63,67 63,67         s-10,10 10,10       \
+  Q50,50 73,57         q20,-5 0,-10        \
+  T70,40               t0,-15              \
+  A5,5 45 1,0 40,20    a5,5 20 0,1 -10-10  Z';
+console.log(parse(path));
 ```
 
-Should yield an array of commands that define the path, like so:
+…will yield an array of commands that define the path, like so:
 
 ``` json
 [
-  {
-    "command": "moveto",
-    "relative": false,
-    "args": [
-      {
-        "x": -150,
-        "y": 150
-      }
-    ]
-  },
-  {
-    "command": "lineto",
-    "relative": false,
-    "args": [
-      {
-        "x": 200,
-        "y": 100
-      }
-    ]
-  },
-  {
-    "command": "horizontal lineto",
-    "relative": false,
-    "args": [
-      250
-    ]
-  },
-  {
-    "command": "vertical lineto",
-    "relative": false,
-    "args": [
-      170
-    ]
-  },
-  {
-    "command": "quadratic curveto",
-    "relative": false,
-    "args": [
-      {
-        "x1": 350,
-        "y1": 90,
-        "x": 375,
-        "y": 150
-      }
-    ]
-  },
-  {
-    "command": "smooth quadratic curveto",
-    "relative": false,
-    "args": [
-      {
-        "x": 400,
-        "y": 150
-      }
-    ]
-  },
-  {
-    "command": "curveto",
-    "relative": false,
-    "args": [
-      {
-        "x1": 500,
-        "y1": 100,
-        "x2": 575,
-        "y2": 300,
-        "x": 560,
-        "y": 150
-      }
-    ]
-  },
-  {
-    "command": "smooth curveto",
-    "relative": false,
-    "args": [
-      {
-        "x2": 650,
-        "y2": 160,
-        "x": 550,
-        "y": 300
-      }
-    ]
-  },
-  {
-    "command": "closepath"
-  },
-  {
-    "command": "moveto",
-    "relative": false,
-    "args": [
-      {
-        "x": 500,
-        "y": 200
-      }
-    ]
-  },
-  {
-    "command": "elliptical arc",
-    "relative": false,
-    "args": [
-      {
-        "rx": 25,
-        "ry": 35,
-        "xAxisRotation": -80,
-        "largeArc": true,
-        "sweep": true,
-        "x": 450,
-        "y": 220
-      }
-    ]
-  },
-  {
-    "command": "closepath"
-  }
+  { code:'M', command:'moveto', x:3, y:7 },
+  { code:'L', command:'lineto', x:5, y:-6 },
+  { code:'L', command:'lineto', x:1, y:7 },
+  { code:'L', command:'lineto', x:100, y:-0.4 },
+  { code:'m', command:'moveto', relative:true, x:-10, y:10 },
+  { code:'l', command:'lineto', relative:true, x:10, y:0 },
+  { code:'V', command:'vertical lineto', y:27 },
+  { code:'V', command:'vertical lineto', y:89 },
+  { code:'H', command:'horizontal lineto', x:23 },
+  { code:'v', command:'vertical lineto', relative:true, y:10 },
+  { code:'h', command:'horizontal lineto', relative:true, x:10 },
+  { code:'C', command:'curveto', x1:33, y1:43, x2:38, y2:47, x:43, y:47 },
+  { code:'c', command:'curveto', relative:true, x1:0, y1:5, x2:5, y2:10, x:10, y:10 },
+  { code:'S', command:'smooth curveto', x2:63, y2:67, x:63, y:67 },
+  { code:'s', command:'smooth curveto', relative:true, x2:-10, y2:10, x:10, y:10 },
+  { code:'Q', command:'quadratic curveto', x1:50, y1:50, x:73, y:57 },
+  { code:'q', command:'quadratic curveto', relative:true, x1:20, y1:-5, x:0, y:-10 },
+  { code:'T', command:'smooth quadratic curveto', x:70, y:40 },
+  { code:'t', command:'smooth quadratic curveto', relative:true, x:0, y:-15 },
+  { code:'A', command:'elliptical arc', rx:5, ry:5, xAxisRotation:45, largeArc:true, sweep:false, x:40, y:20 },
+  { code:'a', command:'elliptical arc', relative:true, rx:5, ry:5, xAxisRotation:20, largeArc:false, sweep:true, x:-10, y:-10 },
+  { code:'Z', command:'closepath' }
 ]
 ```
 
 ## History
+
+### v1.0.0 - 2014-Oct-12
++ Changed return values to represent each unique path command as its own object,
+  regardless of whether the markup merged them or not. Arguments for a command
+  (e.g. `.x`) are no longer in a `.args` array of values, but are instead part
+  of the command object itself.
 
 ### v0.0.4 - 2014-Oct-10
 + Unroll recursive grammar descriptions that could cause parsing a large path to overflow the stack.
