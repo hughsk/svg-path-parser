@@ -56,6 +56,9 @@ console.log(parse(d));
 
 ## History
 
+### v1.0.1 - 2014-Oct-30
++ Fix bug that prevented more than two subpaths from being returned.
+
 ### v1.0.0 - 2014-Oct-12
 + Changed return values to represent each unique path command as its own object,
   regardless of whether the markup merged them or not. Arguments for a command

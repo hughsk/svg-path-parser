@@ -21,8 +21,7 @@
 svg_path
   = wsp* data:moveTo_drawTo_commandGroups? wsp*
   {
-    var cmds = [].concat.apply([],data[0]);
-    if (data[1]) cmds = cmds.concat.apply(cmds,data[1]);
+    for (var cmds=[],i=0;i<data.length;i++) cmds=cmds.concat.apply(cmds,data[i]);
     var first=cmds[0];
     if (first && first.code=='m'){ // Per spec, first moveto is never relative
       delete first.relative;
