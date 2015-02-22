@@ -75,3 +75,7 @@ console.log(parse(d));
 + Fix parsing of numbers other than integers to work.
 + First `moveto` command is always absolute.
 + Additional coordinates after moveto are treated as lineto.
+
+## License
+
+This library is released under an MIT-style license. That generally means that you are free to do almost anything you want with it as long as you give a bit of credit where credit is due. See the LICENSE file included for the actual legal limitations.
