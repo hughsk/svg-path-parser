@@ -54,6 +54,22 @@ console.log(parse(d));
 ]
 ```
 
+## Standalone Build (browser)
+
+Install `browserify` and `derequire` globally:
+```
+npm install browserify derequire -g
+```
+
+The build the file:
+```
+npm run build_standalone
+```
+
+The module can then be accessed with `window.svgPathParser`, RequireJS, or CommonJS.
+
+
+
 ## History
 
 ### v1.0.1 - 2014-Oct-30
