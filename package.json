@@ -4,7 +4,8 @@
   "description": "A parser for SVG's path syntax",
   "main": "index.js",
   "scripts": {
-    "prepublish": "pegjs grammar.peg parser.js"
+    "prepublish": "pegjs grammar.peg parser.js",
+    "build_standalone": "browserify ./index.js --standalone svgPathParser | derequire -f define -t _defi_ | derequire -f require -t _dereq_ | uglifyjs > svg-path-parser-standalone.js"
   },
   "repository": {
     "type": "git",
@@ -12,6 +13,8 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "browserify": "^9.0.3",
+    "derequire": "^1.2.1",
     "pegjs": "~0.7.0"
   },
   "readmeFilename": "README.md",
