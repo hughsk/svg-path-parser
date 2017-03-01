@@ -1,5 +1,6 @@
 {
   function merge(first,more){
+    if (!more) return [first];
     for (var a=[first],i=0,l=more.length;i<l;i++) a[i+1]=more[i][1];
     return a;
   }
@@ -21,6 +22,7 @@
 svg_path
   = wsp* data:moveTo_drawTo_commandGroups? wsp*
   {
+    if (!data) return [];
     for (var cmds=[],i=0;i<data.length;i++) cmds=cmds.concat.apply(cmds,data[i]);
     var first=cmds[0];
     if (first && first.code=='m'){ // Per spec, first moveto is never relative

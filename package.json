@@ -1,7 +1,8 @@
 {
   "name": "svg-path-parser",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A parser for SVG's path syntax",
+  "license" : "MIT",
   "main": "index.js",
   "scripts": {
     "prepublish": "pegjs grammar.peg parser.js"
@@ -12,7 +13,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "pegjs": "~0.7.0"
+    "pegjs": ">=0.7 <1"
   },
   "readmeFilename": "README.md",
   "keywords": [

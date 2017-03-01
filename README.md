@@ -56,6 +56,10 @@ console.log(parse(d));
 
 ## History
 
+### v1.0.2 - 2017-Mar-1
++ Update package to allow latest PEGJS versions (was locked to v0.7.x).
++ Fix bug preventing parsing errors from appearing for newer PEGJS. (Issue #9)
+
 ### v1.0.1 - 2014-Oct-30
 + Fix bug that prevented more than two subpaths from being returned.
 
