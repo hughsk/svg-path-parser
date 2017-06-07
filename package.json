@@ -5,7 +5,7 @@
   "license" : "MIT",
   "main": "index.js",
   "scripts": {
-    "prepublish": "pegjs grammar.peg parser.js"
+    "prepublish": "pegjs -o parser.js grammar.peg"
   },
   "repository": {
     "type": "git",
@@ -13,7 +13,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "pegjs": ">=0.7 <1"
+    "pegjs": ">=0.10 <1"
   },
   "readmeFilename": "README.md",
   "keywords": [
