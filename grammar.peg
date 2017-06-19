@@ -140,9 +140,13 @@ elliptical_arc_argument_sequence
   { return merge(first,more) }
 
 elliptical_arc_argument
-  = rx:nonnegative_number comma_wsp? ry:nonnegative_number comma_wsp?
-        xrot:number comma_wsp large:flag comma_wsp? sweep:flag comma_wsp? xy:coordinate_pair
-  { return { rx:rx, ry:ry, xAxisRotation:xrot, largeArc:large, sweep:sweep, x:xy.x, y:xy.y } }
+  = rx:number comma_wsp? ry:number comma_wsp?
+        xrot:number comma_wsp large:number comma_wsp? sweep:number comma_wsp? xy:coordinate_pair
+  { return { rx:Math.abs(rx), ry:Math.abs(ry),
+             xAxisRotation:xrot,
+             largeArc:!!large?1:0,
+             sweep:!!sweep?1:0,
+             x:xy.x, y:xy.y } }
 
 
 coordinate_pair
@@ -156,10 +160,6 @@ nonnegative_number
 number
   = parts:(sign? floating_point_constant / sign? digit_sequence)
   { return parts.join('')*1 }
-
-flag
-  = bit:[01]
-  { return bit=='1' }
 
 comma_wsp
   = (wsp+ comma? wsp*) / (comma wsp*)
