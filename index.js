@@ -3,6 +3,7 @@
 var parserFunction = require('./parser.js').parse;
 parserFunction.composeSVG = composeSVG;
 parserFunction.parseSVG = parserFunction;
+
 parserFunction.makeAbsolute = makeSVGPathCommandsAbsolute;
 parserFunction.mapCommandToString = mapCommandToString;
 
@@ -37,22 +38,21 @@ function mapCommandToString (cmd) {
 	};
 	if (cmd.code.toLowerCase() === 'a') {
 		return cmd.code +
-			arrayToCommandString([[cmd.rx, cmd.ry], [cmd.xAxisRotation], [boolToInt(cmd.largeArc), boolToInt(cmd.sweep)], [cmd.x, cmd.y]]);
+				arrayToCommandString([cmd.radius, [cmd.xAxisRotation], cmd.flags.map(boolToInt), cmd.to]);
 	}
 	var axisCommandIndex = ['v', 'h'].indexOf(cmd.code.toLowerCase());
 	if (axisCommandIndex !== -1) {
-		var lengthAttr = axisCommandIndex === 0 ? 'y' : 'x';
-		return cmd.code + cmd[lengthAttr];
+		return cmd.code + cmd.value;
 	}
 
 	if (cmd.code === 'Z') { return cmd.code; }
 
-	var intermediaryPointsIndices = Object.keys(cmd)
-		.filter(function(key){ return key.indexOf('x') === 0 && key.length === 2})
-		.map(function(key){ return key.replace(/\D/g,'')}).sort();
+	var points = [];
+	if (cmd.ctrl1) { points.push(cmd.ctrl1); }
+	if (cmd.ctrl2) { points.push(cmd.ctrl2); }
+	points.push(cmd.to);
 
-	return cmd.code + arrayToCommandString(intermediaryPointsIndices.concat([''])
-		.map(function (strIndex) { return [cmd['x' + strIndex], cmd['y' + strIndex]]; }));
+	return cmd.code + arrayToCommandString(points);
 }
 
 function composeSVG (commandList) {

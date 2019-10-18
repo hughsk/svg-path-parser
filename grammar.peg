@@ -10,8 +10,7 @@
   function commands(code,args){
     if (!args) args=[{}];
     for (var i=args.length;i--;){
-      var cmd={code:code,command:cmds[code]};
-      if (code==code.toLowerCase()) cmd.relative=true;
+      var cmd={code:code};
       for (var k in args[i]) cmd[k]=args[i][k];
       args[i] = cmd;
     }
@@ -26,7 +25,6 @@ svg_path
     for (var cmds=[],i=0;i<data.length;i++) cmds=cmds.concat.apply(cmds,data[i]);
     var first=cmds[0];
     if (first && first.code=='m'){ // Per spec, first moveto is never relative
-      delete first.relative;
       first.code = 'M';
     }
     return cmds;
@@ -54,8 +52,8 @@ drawto_command
 moveto
   = c:[Mm] wsp* first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
   {
-    var move = commands(c,[first]);
-    if (more) move = move.concat(commands(c=='M' ? 'L' : 'l',more[1]));
+    var move = commands(c,[{to: first}]);
+    if (more) move = move.concat(commands(c=='M' ? 'L' : 'l', more[1].map(function(arg){return {to: arg} })));
     return move;
   }
 
@@ -65,7 +63,7 @@ closepath
 
 lineto
   = c:[Ll] wsp* args:lineto_argument_sequence
-  { return commands(c,args) }
+  { return commands(c, args.map(function(arg){return {to: arg} })) }
 
 lineto_argument_sequence
   = first:coordinate_pair more:(comma_wsp? coordinate_pair)*
@@ -73,7 +71,7 @@ lineto_argument_sequence
 
 horizontal_lineto
   = c:[Hh] wsp* args:coordinate_sequence
-  { return commands(c,args.map(function(x){ return {x:x}})) }
+  { return commands(c,args.map(function(x){ return {value:x}})) }
 
 coordinate_sequence
   = first:number more:(comma_wsp? number)*
@@ -81,7 +79,7 @@ coordinate_sequence
 
 vertical_lineto
   = c:[Vv] wsp* args:coordinate_sequence
-  { return commands(c,args.map(function(y){ return {y:y}})) }
+  { return commands(c,args.map(function(y){ return {value:y}})) }
 
 
 curveto
@@ -94,7 +92,7 @@ curveto_argument_sequence
 
 curveto_argument
   = a:coordinate_pair comma_wsp? b:coordinate_pair comma_wsp? c:coordinate_pair
-  { return { x1:a.x, y1:a.y, x2:b.x, y2:b.y, x:c.x, y:c.y } }
+  { return {to: c, ctrl1:a, ctrl2:b } }
 
 
 smooth_curveto
@@ -107,7 +105,7 @@ smooth_curveto_argument_sequence
 
 smooth_curveto_argument
   = b:coordinate_pair comma_wsp? c:coordinate_pair
-  { return { x2:b.x, y2:b.y, x:c.x, y:c.y } }
+  { return {to:c, ctrl2:b } }
 
 
 quadratic_bezier_curveto
@@ -120,7 +118,7 @@ quadratic_bezier_curveto_argument_sequence
 
 quadratic_bezier_curveto_argument
   = a:coordinate_pair comma_wsp? b:coordinate_pair
-  { return { x1:a.x, y1:a.y, x:b.x, y:b.y } }
+  { return {to: b, ctrl1:a } }
 
 
 smooth_quadratic_bezier_curveto
@@ -129,7 +127,7 @@ smooth_quadratic_bezier_curveto
 
 smooth_quadratic_bezier_curveto_argument_sequence
   = first:coordinate_pair more:(comma_wsp? coordinate_pair)*
-  { return merge(first,more) }
+  { return merge({to: first},more) }
 
 elliptical_arc
   = c:[Aa] wsp* args:elliptical_arc_argument_sequence
@@ -142,12 +140,12 @@ elliptical_arc_argument_sequence
 elliptical_arc_argument
   = rx:nonnegative_number comma_wsp? ry:nonnegative_number comma_wsp?
         xrot:number comma_wsp large:flag comma_wsp? sweep:flag comma_wsp? xy:coordinate_pair
-  { return { rx:rx, ry:ry, xAxisRotation:xrot, largeArc:large, sweep:sweep, x:xy.x, y:xy.y } }
+  { return {to:xy, radius:[rx, ry], flags:[large, sweep], xAxisRotation:xrot } }
 
 
 coordinate_pair
   = x:number comma_wsp? y:number
-  { return { x:x, y:y } }
+  { return [x, y] }
 
 nonnegative_number
   = n:(floating_point_constant / digit_sequence)
